@@ -3,18 +3,17 @@
   "description" : "Base Level Extension",
   "version": "1.0",
   "manifest_version": 2,
-  "permissions": ["storage", "activeTab"],
+  "permissions": [
+    "storage", 
+    "activeTab", 
+    "webRequest", 
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
   "background": {
     "scripts": ["background.js"],
-    "persistent": false
+    "persistent": true
   },
-   "content_scripts": [
-   {
-     "matches": ["http://*.nytimes.com/*"],
-     "js": ["contentScript.js"]
-   }
- ],
-
   "browser_action": {
     "default_popup": "hello.html",
     "default_icon": "hello_extensions.png"
