@@ -1,0 +1,50 @@
+#container {
+    padding: 1rem;
+    width: 30rem;
+    height: 20rem;
+}
+
+#domainTitle {
+    display: inline-block;
+}
+
+#helpI {
+    cursor: pointer;
+}
+
+#domainList {
+    max-height: 10rem;
+    overflow-y: scroll;
+    padding: 0.5rem 0.5rem 0 0.5rem;
+    border: 2px solid #e6e6e6;
+}
+
+#domainRowTempl {
+    display: none;
+}
+
+.domainInput {
+    width: 70vw !important;
+    flex: auto;
+}
+
+/* .domainInput, .domainDelete {
+    flex: auto;
+} */
+
+#buttonRow {
+    position:fixed;
+    left:0px;
+    bottom:0px;
+    width:100%;
+    padding: 0 1rem 1rem 0;
+}
+
+
+#buttonContainer {
+    float: right;
+}
+
+#saveBtn {
+    margin-left: 0.5rem;
+}

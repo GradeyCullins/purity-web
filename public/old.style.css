@@ -1,0 +1,40 @@
+#container {
+    width: 25rem;
+    height: 10rem;
+}
+
+#domainTitle {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+#domainList {
+    max-height: 5rem;
+    overflow-y: scroll;
+}
+
+#domainRowTempl {
+    display: none;
+}
+
+.domainInput {
+    width: 90%;
+}
+
+.domainDelete {
+    width: 9%;
+}
+
+#buttonRow {
+    position:fixed;
+    left:0px;
+    bottom:0px;
+    height:30px;
+    width:100%;
+}
+
+
+#buttonContainer {
+    float: right;
+    padding-right: 0.75rem;
+}

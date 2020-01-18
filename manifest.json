@@ -11,11 +11,11 @@
     "<all_urls>"
   ],
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["src/background.js"],
     "persistent": true
   },
   "browser_action": {
-    "default_popup": "hello.html",
+    "default_popup": "public/popup.html",
     "default_icon": "hello_extensions.png"
   },
   "commands": {

@@ -10,8 +10,16 @@ const fillerImgURL = "https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/producti
 // Agrregate the img URIs to send to backend.
 let imgURIList = []
 
+// const domains = [
+//   'https://google.com/*',
+//   'https://stackoverflow.com'
+// ]
+// chrome.storage.local.set({domains: domains}, () => {
+//     console.log('set value: ')
+// })
+
 chrome.runtime.onInstalled.addListener(function() {
-  console.log("Installed.");
+  console.log("Purity web extension is now installed.");
 
   chrome.webRequest.onBeforeRequest.addListener(details => {
     if (details.url != fillerImgURL && !imgURIList.includes(details.url)) {
@@ -32,24 +40,28 @@ chrome.runtime.onInstalled.addListener(function() {
   // TODO: ensure this event CANNOT fire before all the image requests have been started.
   chrome.webRequest.onCompleted.addListener(async details => {
     const url = `${purityAPIURL}/filter`
-    const body = {
-      imgUriList: [
-        // Bikini photo
-        "https://i.imgur.com/gcWltJm.jpg",
 
-        // Harmless photo
-        "https://previews.123rf.com/images/valio84sl/valio84sl1311/valio84sl131100006/23554524-autumn-landscape-orange-trre.jpg",
+    // test data.
+    // const body = {
+    //   imgUriList: [
+    //     // Bikini photo
+    //     "https://i.imgur.com/gcWltJm.jpg",
 
-        // WARNING: explicit
-        "https://i.imgur.com/Vdob7RN.jpg"
-      ]
-    }
+    //     // Harmless photo
+    //     "https://previews.123rf.com/images/valio84sl/valio84sl1311/valio84sl131100006/23554524-autumn-landscape-orange-trre.jpg",
 
-    const res = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    })
-    console.log(await res.json())
+    //     // WARNING: explicit
+    //     "https://i.imgur.com/Vdob7RN.jpg"
+    //   ]
+    // }
+
+    const body = { imgURIList }
+
+    // const res = await fetch(url, {
+    //   method: 'POST',
+    //   body: JSON.stringify(body)
+    // })
+    // console.log(await res.json())
   },
   {
     urls: ["<all_urls>"],
