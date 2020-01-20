@@ -1,27 +1,24 @@
 // Stores user settings.
 let settings = {}
 
-// Latest clean user settings. Used to detect changes.
-let settingsSnapshot = {}
-
-// A flag used to toggle the save button.
-// let settingsChanged = false
-
-const settingsChanged = new Event('settingsChanged')
-
+// Bottom row buttons.
 const saveBtn = document.getElementById('saveBtn')
+const addDomainBtn = document.getElementById('addDomainBtn')
 
 // Load user settings using chrome.storage.local API.
 chrome.storage.local.get(_settings => {
-  settings = settingsSnapshot = _settings
+  settings = _settings
+  if (!settings.domains) {
+    settings = {domains:[]}
+    return
+  }
   for (const domain of settings.domains) {
     cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
   }
 })
 
-document.getElementById('addDomainBtn').addEventListener('click', onAddDomainRow)
+addDomainBtn.addEventListener('click', onAddDomainRow)
 saveBtn.addEventListener('click', onSaveSettings)
-saveBtn.addEventListener('settingsChanged', onSettingsChanged)
 
 async function onSaveSettings() {
   let inputs = document.getElementsByClassName('domainInput')
@@ -35,31 +32,22 @@ async function onSaveSettings() {
   }
   settings.domains = domains
   await chrome.storage.local.set(settings)
+  toggleSaveBtn(false)
   console.log('Updated settings')
-}
-
-function onSettingsChanged() {
-  console.log('settings changed')
-  saveBtn.classList.remove('disabled')
 }
 
 function onAddDomainRow() {
   cloneAndDeduplicate('domainList', 'domainRowTempl', '')
 }
 
-function onInputChange() {
-  // let inputs = document.getelementsbyclassname('domaininput')
-  // let domains = []
-  // for (let i = 0; i < inputs.length; i++) {
-  //   // only add non-empty input values to the domain list.
-  //   const val = inputs[i].value.trim()
-  //   if (val) {
-  //     domains.push(val)
-  //   }
-  // }
-  // settings.domains = domains
-  // await chrome.storage.local.set(settings)
-  // console.log('updated settings')
+function onInputChange(ev) {
+  // Note: For some reason the expression: ev.target.classList.contains('valid'))
+  // resolves to false unless it is executed after a short delay of a few seconds.
+  //
+  // If the changed input has a valid entry, allow the user to save.
+  if (ev.target.matches(':valid')) {
+    toggleSaveBtn(true)
+  }
 }
 
 function onDeleteDomainRow(ev) {
@@ -72,14 +60,16 @@ function onDeleteDomainRow(ev) {
     button = ev.target
   }
 
-  // If the sibling input element being deleted has a valid URL, 
-  // and is a saved domain in the user settings, emit a settingsChanged event.
+  // Remove the HTML node.
+  document.getElementById('domainList').removeChild(button.parentNode)
+
+  // If the sibling input element being deleted has a non-empty value and is a 
+  // saved domain in the user settings, enable the user to save the changes.
   const val = button.parentNode.children[0].value.trim()
   if (val && settings.domains.includes(val)) {
-    saveBtn.dispatchEvent(settingsChanged)
+    // Enable the save button when a user deletes a non-emptty domain rule.
+    toggleSaveBtn(true)
   }
-
-  document.getElementById('domainList').removeChild(button.parentNode)
 }
 
 function cloneAndDeduplicate(parentID, cloneID, val) {
@@ -90,14 +80,26 @@ function cloneAndDeduplicate(parentID, cloneID, val) {
   }
   const cloneEl = templEl.cloneNode(true)
   const cloneInput = cloneEl.children[0]
-  cloneInput.addEventListener('change', onInputChange)
 
   // Fix attributes.
   cloneEl.style.display = 'flex'
-  cloneInput.removeAttribute('id')
+  cloneEl.removeAttribute('id')
   cloneInput.value = val
   document.getElementById(parentID).append(cloneEl)
 
+  // Add the event listener after programatically changing the input value to avoid
+  // erroneously firing the 'change' event.
+  cloneInput.addEventListener('change', onInputChange, {capture: false})
+
   // Add event listener for delete button of new rows.
   cloneEl.children[1].addEventListener('click', onDeleteDomainRow)
+}
+
+// Enable or disable the save button based on the bool argument 'enable'.
+function toggleSaveBtn(enable) {
+  if (enable) {
+    saveBtn.classList.remove('disabled')
+  } else {
+    saveBtn.classList.add('disabled')
+  }
 }
