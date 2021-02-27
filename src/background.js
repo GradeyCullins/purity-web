@@ -5,10 +5,10 @@
 const purityAPIURL = 'http://127.0.0.1:8080'
 
 // Replacement image for obscene images.
-const fillerImgURL = "https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg"
+const fillerImgURL = 'https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg'
 
 // Agrregate the img URIs to send to backend.
-let imgURIList = []
+const imgURIList = []
 
 // const domains = [
 //   'https://google.com/*',
@@ -18,8 +18,8 @@ let imgURIList = []
 //     console.log('set value: ')
 // })
 
-chrome.runtime.onInstalled.addListener(function() {
-  console.log("Purity web extension is now installed.");
+chrome.runtime.onInstalled.addListener(function () {
+  console.log('Purity web extension is now installed.')
 
   chrome.webRequest.onBeforeRequest.addListener(details => {
     if (details.url != fillerImgURL && !imgURIList.includes(details.url)) {
@@ -29,11 +29,11 @@ chrome.runtime.onInstalled.addListener(function() {
     // return {
     //   redirectUrl: fillerImgURL
     // }
-  }, 
+  },
   {
-    urls: ["<all_urls>"],
-    types: ["image"]
-  }, ["blocking"] )
+    urls: ['<all_urls>'],
+    types: ['image']
+  }, ['blocking'])
 
   // When HTML page is completely loaded, validate the imgURIList, then interface with the backend
   // to filter the images.
@@ -64,7 +64,7 @@ chrome.runtime.onInstalled.addListener(function() {
     // console.log(await res.json())
   },
   {
-    urls: ["<all_urls>"],
-    types: ["main_frame"]
+    urls: ['<all_urls>'],
+    types: ['main_frame']
   })
-});
+})

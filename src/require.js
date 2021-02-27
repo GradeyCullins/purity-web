@@ -1,5 +1,5 @@
 // Make a request for a user with a given ID
-//axios.get('https://google.com')
+// axios.get('https://google.com')
 //  .then(function (response) {
 //    // handle success
 //    console.log(response);

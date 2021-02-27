@@ -9,7 +9,7 @@ const addDomainBtn = document.getElementById('addDomainBtn')
 chrome.storage.local.get(_settings => {
   settings = _settings
   if (!settings.domains) {
-    settings = {domains:[]}
+    settings = { domains: [] }
     return
   }
   for (const domain of settings.domains) {
@@ -20,9 +20,9 @@ chrome.storage.local.get(_settings => {
 addDomainBtn.addEventListener('click', onAddDomainRow)
 saveBtn.addEventListener('click', onSaveSettings)
 
-async function onSaveSettings() {
-  let inputs = document.getElementsByClassName('domainInput')
-  let domains = []
+async function onSaveSettings () {
+  const inputs = document.getElementsByClassName('domainInput')
+  const domains = []
   for (let i = 0; i < inputs.length; i++) {
     // Only add non-empty input values to the domain list.
     const val = inputs[i].value.trim()
@@ -36,11 +36,11 @@ async function onSaveSettings() {
   console.log('Updated settings')
 }
 
-function onAddDomainRow() {
+function onAddDomainRow () {
   cloneAndDeduplicate('domainList', 'domainRowTempl', '')
 }
 
-function onInputChange(ev) {
+function onInputChange (ev) {
   // Note: For some reason the expression: ev.target.classList.contains('valid'))
   // resolves to false unless it is executed after a short delay of a few seconds.
   //
@@ -50,7 +50,7 @@ function onInputChange(ev) {
   }
 }
 
-function onDeleteDomainRow(ev) {
+function onDeleteDomainRow (ev) {
   let button
   // If the click target is the child <i> tag, choose the even target's parent
   // in order to select the button Node.
@@ -63,7 +63,7 @@ function onDeleteDomainRow(ev) {
   // Remove the HTML node.
   document.getElementById('domainList').removeChild(button.parentNode)
 
-  // If the sibling input element being deleted has a non-empty value and is a 
+  // If the sibling input element being deleted has a non-empty value and is a
   // saved domain in the user settings, enable the user to save the changes.
   const val = button.parentNode.children[0].value.trim()
   if (val && settings.domains.includes(val)) {
@@ -72,10 +72,10 @@ function onDeleteDomainRow(ev) {
   }
 }
 
-function cloneAndDeduplicate(parentID, cloneID, val) {
+function cloneAndDeduplicate (parentID, cloneID, val) {
   const templEl = document.getElementById(cloneID)
   if (!templEl) {
-    console.error(`Couldn\'t find element with id ${cloneID}`)
+    console.error(`Couldn't find element with id ${cloneID}`)
     return
   }
   const cloneEl = templEl.cloneNode(true)
@@ -89,14 +89,14 @@ function cloneAndDeduplicate(parentID, cloneID, val) {
 
   // Add the event listener after programatically changing the input value to avoid
   // erroneously firing the 'change' event.
-  cloneInput.addEventListener('change', onInputChange, {capture: false})
+  cloneInput.addEventListener('change', onInputChange, { capture: false })
 
   // Add event listener for delete button of new rows.
   cloneEl.children[1].addEventListener('click', onDeleteDomainRow)
 }
 
 // Enable or disable the save button based on the bool argument 'enable'.
-function toggleSaveBtn(enable) {
+function toggleSaveBtn (enable) {
   if (enable) {
     saveBtn.classList.remove('disabled')
   } else {
