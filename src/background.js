@@ -10,25 +10,34 @@ const fillerImgURL = 'https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/producti
 // Agrregate the img URIs to send to backend.
 const imgURIList = []
 
-// const domains = [
-//   'https://google.com/*',
-//   'https://stackoverflow.com'
-// ]
-// chrome.storage.local.set({domains: domains}, () => {
-//     console.log('set value: ')
-// })
+// Wrapper function to make interfacing with the chrome.storage API more "synchronous".
+const getUsrSettings = () => {
+  return new Promise(resolve => {
+    chrome.storage.local.get(data => {
+      resolve(data)
+    })
+  })
+}
 
-chrome.runtime.onInstalled.addListener(function () {
+chrome.runtime.onInstalled.addListener(async details => {
   console.log('Purity web extension is now installed.')
 
-  chrome.webRequest.onBeforeRequest.addListener(details => {
-    if (details.url != fillerImgURL && !imgURIList.includes(details.url)) {
-      imgURIList.push(details.url)
+  // Grab the user domain filter settings to filter on certain domains.
+  const settings = await getUsrSettings()
+
+  chrome.webRequest.onBeforeRequest.addListener(req => {
+    if (req.url !== fillerImgURL && !imgURIList.includes(req.url)) {
+      imgURIList.push(req.url)
     }
 
-    // return {
-    //   redirectUrl: fillerImgURL
-    // }
+    if (settings.domains.includes(req.initiator)) {
+      console.log(`blocking ${req.url} from ${req.initiator}`)
+    }
+
+    return {
+      // redirectUrl: fillerImgURL
+      cancel: settings.domains.includes(req.initiator)
+    }
   },
   {
     urls: ['<all_urls>'],
@@ -38,33 +47,33 @@ chrome.runtime.onInstalled.addListener(function () {
   // When HTML page is completely loaded, validate the imgURIList, then interface with the backend
   // to filter the images.
   // TODO: ensure this event CANNOT fire before all the image requests have been started.
-  chrome.webRequest.onCompleted.addListener(async details => {
-    const url = `${purityAPIURL}/filter`
+  // chrome.webRequest.onCompleted.addListener(async details => {
+  //  const url = `${purityAPIURL}/filter`
 
-    // test data.
-    // const body = {
-    //   imgUriList: [
-    //     // Bikini photo
-    //     "https://i.imgur.com/gcWltJm.jpg",
+  // test data.
+  // const body = {
+  //   imgUriList: [
+  //     // Bikini photo
+  //     "https://i.imgur.com/gcWltJm.jpg",
 
-    //     // Harmless photo
-    //     "https://previews.123rf.com/images/valio84sl/valio84sl1311/valio84sl131100006/23554524-autumn-landscape-orange-trre.jpg",
+  //     // Harmless photo
+  //     "https://previews.123rf.com/images/valio84sl/valio84sl1311/valio84sl131100006/23554524-autumn-landscape-orange-trre.jpg",
 
-    //     // WARNING: explicit
-    //     "https://i.imgur.com/Vdob7RN.jpg"
-    //   ]
-    // }
+  //     // WARNING: explicit
+  //     "https://i.imgur.com/Vdob7RN.jpg"
+  //   ]
+  // }
 
-    const body = { imgURIList }
+  // const body = { imgURIList }
 
-    // const res = await fetch(url, {
-    //   method: 'POST',
-    //   body: JSON.stringify(body)
-    // })
-    // console.log(await res.json())
-  },
-  {
-    urls: ['<all_urls>'],
-    types: ['main_frame']
-  })
+  // const res = await fetch(url, {
+  //   method: 'POST',
+  //   body: JSON.stringify(body)
+  // })
+  // console.log(await res.json())
+  // },
+  // {
+  //  urls: ['<all_urls>'],
+  //  types: ['main_frame']
+  // })
 })
