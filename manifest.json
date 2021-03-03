@@ -3,6 +3,7 @@
   "description" : "Filter explicit images from the impure web",
   "version": "1.0",
   "manifest_version": 2,
+  "default_local": "en",
   "permissions": [
     "storage", 
     "activeTab", 
