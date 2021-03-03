@@ -1,6 +1,6 @@
 {
-  "name": "Hello Extensions",
-  "description" : "Base Level Extension",
+  "name": "Purity Vision",
+  "description" : "Filter explicit images from the impure web",
   "version": "1.0",
   "manifest_version": 2,
   "permissions": [
@@ -24,7 +24,7 @@
         "default": "Ctrl+Shift+F",
         "mac": "MacCtrl+Shift+F"
       },
-      "description": "Opens hello.html"
+      "description": "Opens the filter menu"
     }
   }
 }
