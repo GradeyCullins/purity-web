@@ -25,6 +25,13 @@ chrome.runtime.onInstalled.addListener(async details => {
   // Grab the user domain filter settings to filter on certain domains.
   const settings = await getUsrSettings()
 
+  chrome.storage.onChanged.addListener(changes => {
+    if (changes.domains) {
+      console.log(`User domain list changed from ${settings.domains} to ${changes.domains.newValue}`)
+      settings.domains = changes.domains.newValue
+    }
+  })
+
   chrome.webRequest.onBeforeRequest.addListener(req => {
     if (req.url !== fillerImgURL && !imgURIList.includes(req.url)) {
       imgURIList.push(req.url)
