@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const purityAPIURL = 'http://127.0.0.1:8080'
+// const purityAPIURL = 'http://127.0.0.1:8080'
 
 // Replacement image for obscene images.
 const fillerImgURL = 'https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg'
@@ -10,16 +10,8 @@ const fillerImgURL = 'https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/producti
 // Agrregate the img URIs to send to backend.
 const imgURIList = []
 
-// Wrapper function to make interfacing with the chrome.storage API more "synchronous".
-const getUsrSettings = () => {
-  return new Promise(resolve => {
-    chrome.storage.local.get(data => {
-      resolve(data)
-    })
-  })
-}
-
-chrome.runtime.onInstalled.addListener(async details => {
+// Main is called when the extension is loaded.
+const main = async () => {
   console.log('Purity web extension is now installed.')
 
   // Grab the user domain filter settings to filter on certain domains.
@@ -83,4 +75,15 @@ chrome.runtime.onInstalled.addListener(async details => {
   //  urls: ['<all_urls>'],
   //  types: ['main_frame']
   // })
-})
+}
+
+// Wrapper function to make interfacing with the chrome.storage API more "synchronous".
+const getUsrSettings = () => {
+  return new Promise(resolve => {
+    chrome.storage.local.get(data => {
+      resolve(data)
+    })
+  })
+}
+
+chrome.runtime.onInstalled.addListener(main)
