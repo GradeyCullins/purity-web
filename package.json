@@ -12,6 +12,7 @@
     "axios": "^0.21.1"
   },
   "devDependencies": {
+    "chrome-types": "^0.0.21",
     "eslint": "^7.20.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
