@@ -5,10 +5,10 @@
 // const purityAPIURL = 'http://127.0.0.1:8080'
 
 // Replacement image for obscene images.
-const fillerImgURL = 'https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg'
+// const fillerImgURL = 'https://ichef.bbci.co.uk/news/410/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg'
 
 // Agrregate the img URIs to send to backend.
-const imgURIList = []
+// const imgURIList = []
 
 // Main is called when the extension is loaded.
 const main = async () => {
@@ -25,17 +25,23 @@ const main = async () => {
   })
 
   chrome.webRequest.onBeforeRequest.addListener(req => {
-    if (req.url !== fillerImgURL && !imgURIList.includes(req.url)) {
-      imgURIList.push(req.url)
-    }
+    const reqDomain = (new URL(req.initiator)).hostname
 
-    if (settings.domains.includes(req.initiator)) {
+    // if (req.url !== fillerImgURL && !imgURIList.includes(req.url)) {
+    //   imgURIList.push(req.url)
+    // }
+
+    // If an image is a candidate for being filtered.
+    // Candidacy is based on the initiator domain matching the user's domain list.
+    const isToBeFiltered = settings.domains.includes(reqDomain)
+
+    if (isToBeFiltered) {
       console.log(`blocking ${req.url} from ${req.initiator}`)
     }
 
     return {
       // redirectUrl: fillerImgURL
-      cancel: settings.domains.includes(req.initiator)
+      cancel: isToBeFiltered
     }
   },
   {

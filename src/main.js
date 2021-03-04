@@ -25,13 +25,21 @@ async function onSaveSettings () {
   const domains = []
   for (let i = 0; i < inputs.length; i++) {
     // Only add non-empty input values to the domain list.
-    const val = inputs[i].value.trim()
+    let val = inputs[i].value.trim()
+
+    // If the domain input contains http/https, strip it.
+    if (val.indexOf('http://') !== -1) {
+      val = val.substring(7, val.length)
+    }
+    if (val.indexOf('https://') !== -1) {
+      val = val.substring(8, val.length)
+    }
     if (val) {
       domains.push(val)
     }
   }
   settings.domains = domains
-  await chrome.storage.local.set(settings)
+  chrome.storage.local.set(settings)
   toggleSaveBtn(false)
   console.log('Updated settings')
 }
