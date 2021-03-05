@@ -1,3 +1,4 @@
 {
-  "include": ["src/**/*"]
+  "include": ["./**/*"],
+  "exclude": ["./public/vendor"]
 }

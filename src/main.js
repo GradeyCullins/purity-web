@@ -4,10 +4,15 @@ let settings = {}
 // Bottom row buttons.
 const saveBtn = document.getElementById('saveBtn')
 const addDomainBtn = document.getElementById('addDomainBtn')
+const addThisSiteBtn = document.getElementById('add-this-site-btn')
 
-// Load user settings using chrome.storage.local API.
-chrome.storage.local.get(_settings => {
+const main = async _settings => {
+  console.log('Main called with user settings: ', _settings)
   settings = _settings
+  addDomainBtn.addEventListener('click', onAddDomainRow)
+  saveBtn.addEventListener('click', onSaveSettings)
+  addThisSiteBtn.addEventListener('click', onAddThisSite)
+
   if (!settings.domains) {
     settings = { domains: [] }
     return
@@ -15,33 +20,55 @@ chrome.storage.local.get(_settings => {
   for (const domain of settings.domains) {
     cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
   }
+}
+
+// Load user settings using chrome.storage.local API.
+chrome.storage.local.get(_settings => {
+  main(_settings)
 })
 
-addDomainBtn.addEventListener('click', onAddDomainRow)
-saveBtn.addEventListener('click', onSaveSettings)
+function onAddThisSite () {
+  chrome.tabs.query({ active: true }, tabs => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      function: () => {
+        return window.location.hostname
+      }
+    }, res => {
+      const domain = res[0].result
+      cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
+      onSaveSettings()
+    })
+  })
+}
 
 async function onSaveSettings () {
   const inputs = document.getElementsByClassName('domainInput')
-  const domains = []
+  const domainList = []
+
   for (let i = 0; i < inputs.length; i++) {
     // Only add non-empty input values to the domain list.
-    let val = inputs[i].value.trim()
+    let domainInput = inputs[i].value.trim()
+
+    if (!domainInput) {
+      continue
+    }
 
     // If the domain input contains http/https, strip it.
-    if (val.indexOf('http://') !== -1) {
-      val = val.substring(7, val.length)
+    if (domainInput.indexOf('http://') !== -1) {
+      domainInput = domainInput.substring(7, domainInput.length)
     }
-    if (val.indexOf('https://') !== -1) {
-      val = val.substring(8, val.length)
+    if (domainInput.indexOf('https://') !== -1) {
+      domainInput = domainInput.substring(8, domainInput.length)
     }
-    if (val) {
-      domains.push(val)
-    }
+
+    domainList.push(domainInput)
   }
-  settings.domains = domains
+
+  settings.domains = domainList
   chrome.storage.local.set(settings)
   toggleSaveBtn(false)
-  console.log('Updated settings')
+  console.log('Updated filter list')
 }
 
 function onAddDomainRow () {
@@ -80,6 +107,8 @@ function onDeleteDomainRow (ev) {
   }
 }
 
+// Create DOM input nodes for each domain in the user settings and populate them with their
+// respective domains.
 function cloneAndDeduplicate (parentID, cloneID, val) {
   const templEl = document.getElementById(cloneID)
   if (!templEl) {
