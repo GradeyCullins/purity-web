@@ -47,7 +47,7 @@ const main = async () => {
   {
     urls: ['<all_urls>'],
     types: ['image']
-  }, [])
+  }, ['blocking'])
 
   // When HTML page is completely loaded, validate the imgURIList, then interface with the backend
   // to filter the images.

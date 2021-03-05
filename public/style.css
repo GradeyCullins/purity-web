@@ -1,6 +1,6 @@
 #container {
     padding: 1rem;
-    width: 30rem;
+    width: 40rem;
     height: 20rem;
 }
 
@@ -47,4 +47,8 @@
 
 #saveBtn {
     margin-left: 0.5rem;
+}
+
+#add-this-site-btn {
+    margin-right: 0.5rem;
 }
