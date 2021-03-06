@@ -9,10 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/firefox-webext-browser": "^82.0.0",
     "axios": "^0.21.1"
   },
   "devDependencies": {
-    "chrome-types": "^0.0.21",
     "eslint": "^7.21.0",
     "eslint-plugin-react": "^7.22.0",
     "standard": "^16.0.3",
