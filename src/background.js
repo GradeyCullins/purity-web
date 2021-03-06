@@ -25,9 +25,15 @@ const imgURIList = []
 // Main is called when the extension is loaded.
 const main = async () => {
   console.log('Purity web extension is now installed.')
+  let settings
 
   // Grab the user domain filter settings to filter on certain domains.
-  const settings = await getLocalStorage(null)
+  try {
+    settings = await getLocalStorage(null)
+  } catch (err) {
+    console.err(err)
+    return
+  }
 
   browser.storage.onChanged.addListener(changes => {
     if (changes.domains) {

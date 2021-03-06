@@ -8,33 +8,49 @@ const addThisSiteBtn = document.getElementById('add-this-site-btn')
 
 // Script entrypoint.
 const main = async () => {
-  // Load user settings using browser.storage.local API.
-  settings = await browser.storage.local.get(null)
+  try {
+    // Load user settings using browser.storage.local API.
+    settings = await browser.storage.local.get(null)
 
-  console.log('Main called with user settings: ', settings)
-  addDomainBtn.addEventListener('click', onAddDomainRow)
-  saveBtn.addEventListener('click', onSaveSettings)
-  addThisSiteBtn.addEventListener('click', onAddThisSite)
+    console.log('Main called with user settings: ', settings)
+    addDomainBtn.addEventListener('click', onAddDomainRow)
+    saveBtn.addEventListener('click', onSaveSettings)
+    addThisSiteBtn.addEventListener('click', onAddThisSite)
 
-  // On first load the settings object is empty; init it.
-  if (!settings.domains) {
-    settings = { domains: [] }
-    return
-  }
+    // On first load the settings object is empty; init it.
+    if (!settings.domains) {
+      settings = { domains: [] }
+      return
+    }
 
-  for (const domain of settings.domains) {
-    cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
+    for (const domain of settings.domains) {
+      cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
+    }
+  } catch (err) {
+    console.log(err)
   }
 }
 
 async function onAddThisSite () {
-  const tabs = await browser.tabs.query({ active: true })
-  const u = new URL(tabs[0].url)
-  if (settings.domains.includes(u.hostname)) {
-    return
+  try {
+    const tabs = await browser.tabs.query({ active: true })
+    const u = new URL(tabs[0].url)
+    if (settings.domains.includes(u.hostname)) {
+      return
+    }
+    cloneAndDeduplicate('domainList', 'domainRowTempl', u.hostname)
+    await onSaveSettings()
+    browser.notifications.create({
+      type: 'basic',
+      iconUrl: '../hello_extensions.png',
+      title: 'Added new domain',
+      message: `Added ${u.hostname} to filter list`
+    }).catch(err => {
+      console.log(err)
+    })
+  } catch (err) {
+    console.log(err)
   }
-  cloneAndDeduplicate('domainList', 'domainRowTempl', u.hostname)
-  onSaveSettings()
 }
 
 async function onSaveSettings () {
