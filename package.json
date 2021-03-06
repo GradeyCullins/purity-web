@@ -15,6 +15,7 @@
     "chrome-types": "^0.0.21",
     "eslint": "^7.21.0",
     "eslint-plugin-react": "^7.22.0",
-    "standard": "^16.0.3"
+    "standard": "^16.0.3",
+    "webextension-polyfill": "^0.7.0"
   }
 }
