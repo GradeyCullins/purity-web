@@ -2,20 +2,18 @@
   "name": "Purity Vision",
   "description" : "Filter explicit images from the impure web",
   "version": "1.0",
-  "manifest_version": 3,
+  "manifest_version": 2,
   "permissions": [
     "storage", 
     "activeTab", 
     "webRequest",
-    "scripting"
-  ],
-  "host_permissions": [
+    "webRequestBlocking",
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "service-worker.js"
+    "scripts": ["src/background.js"]
   },
-  "action": {
+  "browser_action": {
     "default_popup": "public/popup.html",
     "default_icon": "hello_extensions.png"
   },

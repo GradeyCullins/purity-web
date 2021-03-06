@@ -26,7 +26,6 @@ const main = async () => {
 
   chrome.webRequest.onBeforeRequest.addListener(req => {
     const reqDomain = (new URL(req.initiator)).hostname
-    console.log(settings.domains)
 
     // if (req.url !== fillerImgURL && !imgURIList.includes(req.url)) {
     //   imgURIList.push(req.url)
@@ -48,7 +47,7 @@ const main = async () => {
   {
     urls: ['<all_urls>'],
     types: ['image']
-  }, [])
+  }, ['blocking'])
 
   // When HTML page is completely loaded, validate the imgURIList, then interface with the backend
   // to filter the images.

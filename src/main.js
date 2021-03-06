@@ -13,10 +13,12 @@ const main = async _settings => {
   saveBtn.addEventListener('click', onSaveSettings)
   addThisSiteBtn.addEventListener('click', onAddThisSite)
 
+  // On first load the settings object is empty; init it.
   if (!settings.domains) {
     settings = { domains: [] }
     return
   }
+
   for (const domain of settings.domains) {
     cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
   }
@@ -29,16 +31,12 @@ chrome.storage.local.get(_settings => {
 
 function onAddThisSite () {
   chrome.tabs.query({ active: true }, tabs => {
-    chrome.scripting.executeScript({
-      target: { tabId: tabs[0].id },
-      function: () => {
-        return window.location.hostname
-      }
-    }, res => {
-      const domain = res[0].result
-      cloneAndDeduplicate('domainList', 'domainRowTempl', domain)
-      onSaveSettings()
-    })
+    const u = new URL(tabs[0].url)
+    if (settings.domains.includes(u.hostname)) {
+      return
+    }
+    cloneAndDeduplicate('domainList', 'domainRowTempl', u.hostname)
+    onSaveSettings()
   })
 }
 
