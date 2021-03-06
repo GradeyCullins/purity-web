@@ -12,22 +12,31 @@ const imgURIList = []
 
 // Can't use async callbacks in Chromium.
 // https://github.com/mozilla/webextension-polyfill/issues/225#issuecomment-612495680
+// function asyncRedirect () {
+//   return new Promise((resolve, reject) => {
+//     window.setTimeout(() => {
+//       resolve({
+//         redirectUrl: fillerImgURL
+//       })
+//     }, 1000)
+//   })
+// }
 
 // Main is called when the extension is loaded.
 const main = async () => {
   console.log('Purity web extension is now installed.')
 
   // Grab the user domain filter settings to filter on certain domains.
-  const settings = await getUsrSettings()
+  const settings = await getLocalStorage(null)
 
-  chrome.storage.onChanged.addListener(changes => {
+  browser.storage.onChanged.addListener(changes => {
     if (changes.domains) {
       console.log(`User domain list changed from ${settings.domains} to ${changes.domains.newValue}`)
       settings.domains = changes.domains.newValue
     }
   })
 
-  chrome.webRequest.onBeforeRequest.addListener(req => {
+  browser.webRequest.onBeforeRequest.addListener(req => {
     const reqDomain = (new URL(req.initiator)).hostname
 
     // If an image is a candidate for being filtered.
@@ -49,7 +58,7 @@ const main = async () => {
   // When HTML page is completely loaded, validate the imgURIList, then interface with the backend
   // to filter the images.
   // TODO: ensure this event CANNOT fire before all the image requests have been started.
-  // chrome.webRequest.onCompleted.addListener(async details => {
+  // browser.webRequest.onCompleted.addListener(async details => {
   //  const url = `${purityAPIURL}/filter`
 
   // test data.
@@ -80,13 +89,9 @@ const main = async () => {
   // })
 }
 
-// Wrapper function to make interfacing with the chrome.storage API more "synchronous".
-const getUsrSettings = () => {
-  return new Promise(resolve => {
-    chrome.storage.local.get(data => {
-      resolve(data)
-    })
-  })
+// Wrapper function to make interfacing with the browser.storage API more "synchronous".
+const getLocalStorage = keys => {
+  return browser.storage.local.get(keys)
 }
 
-chrome.runtime.onInstalled.addListener(main)
+browser.runtime.onInstalled.addListener(main)

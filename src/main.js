@@ -6,9 +6,12 @@ const saveBtn = document.getElementById('saveBtn')
 const addDomainBtn = document.getElementById('addDomainBtn')
 const addThisSiteBtn = document.getElementById('add-this-site-btn')
 
-const main = async _settings => {
-  console.log('Main called with user settings: ', _settings)
-  settings = _settings
+// Script entrypoint.
+const main = async () => {
+  // Load user settings using browser.storage.local API.
+  settings = await browser.storage.local.get(null)
+
+  console.log('Main called with user settings: ', settings)
   addDomainBtn.addEventListener('click', onAddDomainRow)
   saveBtn.addEventListener('click', onSaveSettings)
   addThisSiteBtn.addEventListener('click', onAddThisSite)
@@ -24,20 +27,14 @@ const main = async _settings => {
   }
 }
 
-// Load user settings using chrome.storage.local API.
-chrome.storage.local.get(_settings => {
-  main(_settings)
-})
-
-function onAddThisSite () {
-  chrome.tabs.query({ active: true }, tabs => {
-    const u = new URL(tabs[0].url)
-    if (settings.domains.includes(u.hostname)) {
-      return
-    }
-    cloneAndDeduplicate('domainList', 'domainRowTempl', u.hostname)
-    onSaveSettings()
-  })
+async function onAddThisSite () {
+  const tabs = await browser.tabs.query({ active: true })
+  const u = new URL(tabs[0].url)
+  if (settings.domains.includes(u.hostname)) {
+    return
+  }
+  cloneAndDeduplicate('domainList', 'domainRowTempl', u.hostname)
+  onSaveSettings()
 }
 
 async function onSaveSettings () {
@@ -64,7 +61,7 @@ async function onSaveSettings () {
   }
 
   settings.domains = domainList
-  chrome.storage.local.set(settings)
+  browser.storage.local.set(settings)
   toggleSaveBtn(false)
   console.log('Updated filter list')
 }
@@ -138,3 +135,5 @@ function toggleSaveBtn (enable) {
     saveBtn.classList.add('disabled')
   }
 }
+
+main()
