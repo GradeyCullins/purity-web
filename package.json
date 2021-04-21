@@ -4,18 +4,31 @@
   "description": "",
   "main": "background.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/firefox-webext-browser": "^82.0.0",
     "axios": "^0.21.1"
   },
   "devDependencies": {
+    "@types/firefox-webext-browser": "^82.0.0",
+    "@types/jest": "^26.0.22",
     "eslint": "^7.21.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.3.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-react": "^7.22.0",
-    "standard": "^16.0.3",
+    "jest": "^26.6.3",
     "webextension-polyfill": "^0.7.0"
+  },
+  "standard": {
+    "globals": [
+      "test",
+      "expect",
+      "browser"
+    ]
   }
 }

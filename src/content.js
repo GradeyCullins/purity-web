@@ -2,10 +2,16 @@ const purityAPIURL = 'http://localhost:8080'
 const defaultImgURI = 'https://cdn.frankerfacez.com/emoticon/121482/4'
 const onDocLoad = docLoadHandler
 
-if (document.readyState === 'loaded') {
-  document.addEventListener('DOMContentLoaded', onDocLoad)
-} else {
-  onDocLoad()
+export function sum (a, b) {
+  return a + b
+}
+
+export function main () {
+  if (document.readyState === 'complete') {
+    document.addEventListener('DOMContentLoaded', onDocLoad)
+  } else {
+    onDocLoad()
+  }
 }
 
 async function docLoadHandler () {

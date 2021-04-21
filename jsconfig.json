@@ -1,4 +1,10 @@
 {
-  "include": ["./**/*"],
-  "exclude": ["./public/vendor"]
+  "compilerOptions": {
+    "target": "es2017",
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true,
+    "checkJs": true,
+    "jsx": "react",
+    "lib": [ "dom", "es2017" ]
+  }
 }
