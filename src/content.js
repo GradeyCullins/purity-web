@@ -31,12 +31,17 @@ async function docLoadHandler () {
 }
 
 async function filterImgTags () {
-  const imgURIList = []
   const imgList = document.getElementsByTagName('img')
-
-  imgURIList.push(...updateImgListSrc(imgList))
-  if (imgURIList.length === 0) {
+  if (imgList.length === 0) {
     return
+  }
+
+  // Run all the images through the filter and temporarilily change their src attrs to be of the placeholder img URI to be safe.
+  updateImgListSrc(imgList, defaultImgURI)
+
+  const imgURIList = []
+  for (const img of imgList) {
+    imgURIList.push(img.getAttribute('old-src'))
   }
 
   try {
@@ -47,6 +52,9 @@ async function filterImgTags () {
     }
 
     const imgFilterRes = await res.json()
+
+    // TODO: rewrite to be more functional, less O^2.
+    // Should use hash structures for faster mix-and-matching between JSON responses and img elements.
     for (const res of imgFilterRes) {
       if (res.pass) {
         for (const img of imgList) {
@@ -57,57 +65,18 @@ async function filterImgTags () {
         }
       }
     }
-    // TODO: for each filter response
-    // if filter passes, update img src tag.
   } catch (err) {
     console.log(err)
   }
 }
 
-// async function filterBackgroundImage () {
-// }
-
-// function updateElBackgroundImg (el) {
-//   if (!el.style.backgroundImage) {
-//     return
-//   }
-
-//   el.style.backgroundImage = el.style.backgroundImage.split(', ').filter(val => {
-//     return val.match('url')
-//   }).map(val => defaultImgURI)
-// }
-
-// function getBackgroundImgList () {
-//   const imgList = []
-
-//   // List of tags that are likely to have a background-image CSS property.
-//   const tags = ['div', 'section']
-//   for (const tag of tags) {
-//     document.querySelectorAll(tag).forEach(el => {
-//       if (el.style.backgroundImage) {
-//         const urls = el.style.backgroundImage.split(', ').filter(val => {
-//           return val.match('url')
-//         })
-//         if (urls.length > 0) {
-//           imgList.push(el)
-//         }
-//       }
-//     })
-//   }
-
-//   return imgList
-// }
-
-function updateImgListSrc (imgList) {
-  const imgURIList = []
-
+// Warn: function has side-effects!
+// Take list of img elements and change their image src attribute to be of value "src".
+function updateImgListSrc (imgList, src) {
   for (const img of imgList) {
-    imgURIList.push(img.src)
     img.setAttribute('old-src', img.src)
-    img.src = defaultImgURI
+    img.src = src
   }
-
-  return imgURIList
 }
 
 async function filterImages (imgURIList) {
