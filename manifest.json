@@ -16,8 +16,8 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-	"node_modules/webextension-polyfill/dist/browser-polyfill.js",
-	"src/content-loader.js"
+        "node_modules/webextension-polyfill/dist/browser-polyfill.js",
+        "src/content-loader.js"
       ]
     }
   ],

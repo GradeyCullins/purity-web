@@ -16,6 +16,8 @@ export function main () {
 
 async function docLoadHandler () {
   const domainList = (await browser.storage.local.get(null)).domains
+
+  // Don't do image filtering if the current tab URL is not in the domain whitelist.
   if (!domainList.includes(window.location.hostname)) {
     return
   }
