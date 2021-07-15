@@ -1,5 +1,5 @@
 const purityAPIURL = 'http://localhost:8080'
-const defaultImgURI = 'https://cdn.frankerfacez.com/emoticon/121482/4'
+export const defaultImgURI = 'https://cdn.frankerfacez.com/emoticon/121482/4'
 const onDocLoad = docLoadHandler
 
 export function sum (a, b) {
@@ -72,7 +72,7 @@ async function filterImgTags () {
 
 // Warn: function has side-effects!
 // Take list of img elements and change their image src attribute to be of value "src".
-function updateImgListSrc (imgList, src) {
+export function updateImgListSrc (imgList, src) {
   for (const img of imgList) {
     img.setAttribute('old-src', img.src)
     img.src = src
