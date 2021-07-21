@@ -1,10 +1,7 @@
-const purityAPIURL = 'http://localhost:8080'
+import { filterImages, health } from './api.js'
+
 export const defaultImgURI = 'https://cdn.frankerfacez.com/emoticon/121482/4'
 const onDocLoad = docLoadHandler
-
-export function sum (a, b) {
-  return a + b
-}
 
 export function main () {
   if (document.readyState === 'complete') {
@@ -19,6 +16,12 @@ async function docLoadHandler () {
 
   // Don't do image filtering if the current tab URL is not in the domain whitelist.
   if (!domainList.includes(window.location.hostname)) {
+    return
+  }
+
+  // Don't do image filtering if the backend is not reachable.
+  const res = await health()
+  if (res.status !== 200) {
     return
   }
 
@@ -77,15 +80,6 @@ export function updateImgListSrc (imgList, src) {
     img.setAttribute('old-src', img.src)
     img.src = src
   }
-}
-
-async function filterImages (imgURIList) {
-  const url = `${purityAPIURL}/filter`
-  const opts = {
-    method: 'post',
-    body: JSON.stringify({ imgURIList })
-  }
-  return window.fetch(url, opts)
 }
 
 // browser.runtime.onMessage.addListener(onRecvMsg)
