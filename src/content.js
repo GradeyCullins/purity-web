@@ -25,21 +25,19 @@ async function docLoadHandler () {
     return
   }
 
-  // Async call to filter images as <img> tags.
-  filterImgTags()
+  // TODO: get imgs from other sources like background-image
+  const imgList = document.getElementsByTagName('img')
 
-  // Async call to filter images as CSS - background-image: url.
-  // filterBackgroundImage()
-  // const imgList = getBackgroundImgList()
+  // Async call to filter images as <img> tags.
+  filterImgTags(imgList)
 }
 
-async function filterImgTags () {
-  const imgList = document.getElementsByTagName('img')
+async function filterImgTags (imgList) {
   if (imgList.length === 0) {
     return
   }
 
-  // Run all the images through the filter and temporarilily change their src attrs to be of the placeholder img URI to be safe.
+  // Run all the images through the filter and change their src attrs to be the placeholder img URI.
   updateImgListSrc(imgList, defaultImgURI)
 
   const imgURIList = []
@@ -73,7 +71,7 @@ async function filterImgTags () {
   }
 }
 
-// Warn: function has side-effects!
+// Warning: function has side-effects!
 // Take list of img elements and change their image src attribute to be of value "src".
 export function updateImgListSrc (imgList, src) {
   for (const img of imgList) {
