@@ -1,14 +1,15 @@
 import { filterImages, health } from './api.js'
 
-export const defaultImgURI = 'https://cdn.frankerfacez.com/emoticon/121482/4'
-const onDocLoad = docLoadHandler
+export const onDocLoad = docLoadHandler
 
 export function main () {
-  if (document.readyState === 'complete') {
-    document.addEventListener('DOMContentLoaded', onDocLoad)
-  } else {
-    onDocLoad()
-  }
+  // if (document.readyState === 'complete') {
+  //   document.addEventListener('load', onDocLoad)
+  // } else {
+  //   onDocLoad()
+  // }
+  // TODO: clean this up
+  onDocLoad()
 }
 
 async function docLoadHandler () {
@@ -26,7 +27,7 @@ async function docLoadHandler () {
   }
 
   // TODO: get imgs from other sources like background-image
-  const imgList = document.getElementsByTagName('img')
+  const imgList = [...document.getElementsByTagName('img')]
 
   // Async call to filter images as <img> tags.
   filterImgTags(imgList)
@@ -37,12 +38,13 @@ async function filterImgTags (imgList) {
     return
   }
 
+  // Temporarily not pre-filtering images to see how it goes.
   // Run all the images through the filter and change their src attrs to be the placeholder img URI.
-  updateImgListSrc(imgList, defaultImgURI)
+  // updateImgListSrc(imgList)
 
   const imgURIList = []
   for (const img of imgList) {
-    imgURIList.push(img.getAttribute('old-src'))
+    imgURIList.push(img.src)
   }
 
   try {
@@ -51,32 +53,41 @@ async function filterImgTags (imgList) {
       console.error(`Failed to get response from API with status ${res.status}`)
       return
     }
+    const imgFilterResList = await res.json()
+    const filteredImgResList = imgFilterResList.filter(res => !res.passed)
+    const filteredImgList = imgList.filter(img => {
+      const filterRes = filteredImgResList.find(res => res.imgURI === img.src)
+      img.setAttribute('reason', filterRes.reason) // Attach metadata to the HTML node for more detailed feedback in the UI.
+      return filterRes && !filterRes.pass
+    })
 
-    const imgFilterRes = await res.json()
-
-    // TODO: rewrite to be more functional, less O^2.
-    // Should use hash structures for faster mix-and-matching between JSON responses and img elements.
-    for (const res of imgFilterRes) {
-      if (res.pass) {
-        for (const img of imgList) {
-          const oldSrc = img.getAttribute('old-src')
-          if (oldSrc === res.imgURI) {
-            img.src = res.imgURI
-          }
-        }
-      }
+    for (const img of filteredImgList) {
+      const parent = img.parentElement
+      const warningNode = document.createElement('p')
+      warningNode.classList.add('warning-tag')
+      warningNode.innerHTML = `
+⚠️ Google Vision Detected <span class="fail-reason-text">${img.getAttribute('reason')}</span> content in this image. <button id='${img.src}'>show</button>`
+      parent.insertBefore(warningNode, img)
+      img.classList.add('blurred-img')
+      const button = document.getElementById(img.src)
+      button.addEventListener('click', () => img.classList.toggle('blurred-img'))
     }
   } catch (err) {
     console.log(err)
   }
 }
 
+
+// TODO: rename function as it no longer changes image src attr.
 // Warning: function has side-effects!
 // Take list of img elements and change their image src attribute to be of value "src".
-export function updateImgListSrc (imgList, src) {
+export function updateImgListSrc (imgList) {
   for (const img of imgList) {
-    img.setAttribute('old-src', img.src)
-    img.src = src
+    const parent = img.parentElement
+    const warningNode = document.createElement('p')
+    warningNode.innerText = '⚠️ Google Vision Detected explicit content in this image. Click here to show the image.'
+    parent.insertBefore(warningNode, img)
+    img.classList.add('blurred-img')
   }
 }
 
