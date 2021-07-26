@@ -1,0 +1,11 @@
+.blurred-img {
+    filter: blur(30px);
+}
+
+.warning-tag {
+    font-size: 0.6rem;
+}
+
+.fail-reason-text {
+    color: #ff1818;
+}
