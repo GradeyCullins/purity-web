@@ -95,6 +95,7 @@ function wrapEl (el, wrapper, parent) {
   if (!el || !wrapper || !parent) {
     return
   }
+  wrapper.setAttribute('style', `width: ${el.width}; height: ${el.height}`)
   parent.replaceChild(wrapper, el)
   wrapper.appendChild(el)
 }
