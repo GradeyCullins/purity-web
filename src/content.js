@@ -39,7 +39,7 @@ async function filterImgTags (imgList) {
   }
 
   // Temporarily not pre-filtering images to see how it goes.
-  // Run all the images through the filter and change their src attrs to be the placeholder img URI.
+  // Preemptively blur/filter images to avoid showing explicit content before API filter request completes.
   // updateImgListSrc(imgList)
 
   const imgURIList = []
@@ -62,33 +62,52 @@ async function filterImgTags (imgList) {
     })
 
     for (const img of filteredImgList) {
-      const parent = img.parentElement
-      const warningNode = document.createElement('p')
-      warningNode.classList.add('warning-tag')
-      warningNode.innerHTML = `
-⚠️ Google Vision Detected <span class="fail-reason-text">${img.getAttribute('reason')}</span> content in this image. <button id='${img.src}'>show</button>`
-      parent.insertBefore(warningNode, img)
-      img.classList.add('blurred-img')
-      const button = document.getElementById(img.src)
-      button.addEventListener('click', () => img.classList.toggle('blurred-img'))
+      updateFilteredImgMarkup(img)
     }
   } catch (err) {
     console.log(err)
   }
 }
 
-
-// TODO: rename function as it no longer changes image src attr.
 // Warning: function has side-effects!
-// Take list of img elements and change their image src attribute to be of value "src".
-export function updateImgListSrc (imgList) {
-  for (const img of imgList) {
-    const parent = img.parentElement
-    const warningNode = document.createElement('p')
-    warningNode.innerText = '⚠️ Google Vision Detected explicit content in this image. Click here to show the image.'
-    parent.insertBefore(warningNode, img)
-    img.classList.add('blurred-img')
+// Take an img element and add/modify markup to mark the image as explicit.
+export function updateFilteredImgMarkup (img) {
+  if (!img) {
+    return
   }
+
+  const parent = img.parentElement
+
+  // Add a warning tag to the filtered image.
+  const warningNode = document.createElement('p')
+  warningNode.classList.add('warning-tag')
+  warningNode.innerHTML = `
+⚠️ Google Vision Detected <span class="fail-reason-text">${img.getAttribute('reason')}</span> content in this image <button id='${img.src}'>show</button>`
+  addElWarnTag(img, warningNode, parent)
+
+  // Add a container element to the image to make the filter more obvious.
+  const wrapper = document.createElement('div')
+  wrapper.classList.add('blurred-img-wrapper')
+  wrapEl(img, wrapper, parent)
+}
+
+function wrapEl (el, wrapper, parent) {
+  if (!el || !wrapper || !parent) {
+    return
+  }
+  parent.replaceChild(wrapper, el)
+  wrapper.appendChild(el)
+}
+
+function addElWarnTag (el, warnNode, parent) {
+  if (!el || !warnNode || !parent) {
+    return
+  }
+  // TODO: get the image URL from: src attribute, background-url, etc.
+  parent.insertBefore(warnNode, el)
+  el.classList.add('blurred-img')
+  const button = document.getElementById(el.src)
+  button.addEventListener('click', () => el.classList.toggle('blurred-img'))
 }
 
 // browser.runtime.onMessage.addListener(onRecvMsg)

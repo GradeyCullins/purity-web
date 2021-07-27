@@ -2,6 +2,10 @@
     filter: blur(30px);
 }
 
+.blurred-img-wrapper {
+    border: 1px dashed #ff1818;
+}
+
 .warning-tag {
     font-size: 0.6rem;
 }
