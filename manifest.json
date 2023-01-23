@@ -1,11 +1,11 @@
 {
   "name": "Purity Vision",
-  "description" : "Filter explicit images from the impure web",
+  "description": "Filter explicit images from the impure web",
   "version": "1.0",
   "manifest_version": 2,
   "permissions": [
-    "storage", 
-    "activeTab", 
+    "storage",
+    "activeTab",
     "notifications",
     "webRequest",
     "webRequestBlocking",
@@ -14,7 +14,9 @@
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "js": [
         "node_modules/webextension-polyfill/dist/browser-polyfill.js",
         "src/content-loader.js"
@@ -26,7 +28,7 @@
   ],
   "browser_action": {
     "default_popup": "public/popup.html",
-    "default_icon": "hello_extensions.png"
+    "default_icon": "logo.png"
   },
   "web_accessible_resources": [
     "src/*"

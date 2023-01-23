@@ -16,13 +16,14 @@ async function docLoadHandler () {
   const domainList = (await browser.storage.local.get(null)).domains
 
   // Don't do image filtering if the current tab URL is not in the domain whitelist.
-  if (!domainList.includes(window.location.hostname)) {
-    return
-  }
+  // if (!domainList.includes(window.location.hostname)) {
+  //   return
+  // }
 
   // Don't do image filtering if the backend is not reachable.
   const res = await health()
   if (res.status !== 200) {
+    console.log(`failed to reach backend with response code: ${res.status}`)
     return
   }
 
@@ -38,14 +39,14 @@ async function filterImgTags (imgList) {
     return
   }
 
-  // Temporarily not pre-filtering images to see how it goes.
   // Preemptively blur/filter images to avoid showing explicit content before API filter request completes.
-  // updateImgListSrc(imgList)
+  imgList.forEach(i => i.classList.add('blurred-img'))
 
-  const imgURIList = []
-  for (const img of imgList) {
-    imgURIList.push(img.src)
-  }
+  const imgURIList = imgList.map(img => img.src)
+  // const imgURIList = []
+  // for (const img of imgList) {
+  //   imgURIList.push(img.src)
+  // }
 
   try {
     const res = await filterImages(imgURIList)
@@ -53,17 +54,18 @@ async function filterImgTags (imgList) {
       console.error(`Failed to get response from API with status ${res.status}`)
       return
     }
-    const imgFilterResList = await res.json()
-    const filteredImgResList = imgFilterResList.filter(res => !res.passed)
-    const filteredImgList = imgList.filter(img => {
-      const filterRes = filteredImgResList.find(res => res.imgURI === img.src)
-      img.setAttribute('reason', filterRes.reason) // Attach metadata to the HTML node for more detailed feedback in the UI.
-      return filterRes && !filterRes.pass
-    })
+    const filterRes = await res.json()
 
-    for (const img of filteredImgList) {
-      updateFilteredImgMarkup(img)
-    }
+    // const filteredOut = filterRes.filter(res => res.pass === false)
+    // imgList
+    //   .filter(img => filteredOut.find(res => res.imgURI === img.src) !== undefined)
+    //   .forEach(i => { updateFilteredImgMarkup(i) })
+
+    const passed = filterRes.filter(res => res.pass === true)
+    imgList
+      .filter(img => passed.find(res => res.imgURI === img.src) !== undefined)
+      .forEach(i => { i.classList.remove('blurred-img') })
+
   } catch (err) {
     console.log(err)
   }
@@ -73,6 +75,7 @@ async function filterImgTags (imgList) {
 // Take an img element and add/modify markup to mark the image as explicit.
 export function updateFilteredImgMarkup (img) {
   if (!img) {
+    console.log('here')
     return
   }
 
@@ -82,7 +85,7 @@ export function updateFilteredImgMarkup (img) {
   const warningNode = document.createElement('p')
   warningNode.classList.add('warning-tag')
   warningNode.innerHTML = `
-⚠️ Google Vision Detected <span class="fail-reason-text">${img.getAttribute('reason')}</span> content in this image <button id='${img.src}'>show</button>`
+⚠️ Google Vision Detected <span class="fail-reason-text">${img.getAttribute('reason')}</span> content in this image`
   addElWarnTag(img, warningNode, parent)
 
   // Add a container element to the image to make the filter more obvious.
@@ -106,7 +109,6 @@ function addElWarnTag (el, warnNode, parent) {
   }
   // TODO: get the image URL from: src attribute, background-url, etc.
   parent.insertBefore(warnNode, el)
-  el.classList.add('blurred-img')
   const button = document.getElementById(el.src)
   button.addEventListener('click', () => el.classList.toggle('blurred-img'))
 }

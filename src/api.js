@@ -1,7 +1,7 @@
 const purityAPIURL = 'http://localhost:8080'
 
 export async function filterImages (imgURIList) {
-  const url = `${purityAPIURL}/filter`
+  const url = `${purityAPIURL}/filter/batch`
   const opts = {
     method: 'post',
     body: JSON.stringify({ imgURIList })

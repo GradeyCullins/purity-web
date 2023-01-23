@@ -11,8 +11,8 @@ const main = async () => {
   try {
     // Load user settings using browser.storage.local API.
     settings = await browser.storage.local.get(null)
+    console.log('Loaded user settings: ', settings)
 
-    console.log('Main called with user settings: ', settings)
     addDomainBtn.addEventListener('click', onAddDomainRow)
     saveBtn.addEventListener('click', onSaveSettings)
     addThisSiteBtn.addEventListener('click', onAddThisSite)
@@ -32,6 +32,7 @@ const main = async () => {
 }
 
 async function onAddThisSite () {
+  console.log('here')
   try {
     const tabs = await browser.tabs.query({ active: true })
     const u = new URL(tabs[0].url)
