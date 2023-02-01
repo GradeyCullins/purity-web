@@ -1,0 +1,56 @@
+.blurred-img {
+    filter: blur(30px);
+}
+
+.blurred-img-wrapper {
+    border: 1px dashed #ff1818;
+}
+
+.warning-tag {
+    font-size: 0.6rem;
+}
+
+.fail-reason-text {
+    color: #ff1818;
+}
+
+#loading-tab {
+  display: flex;
+  z-index: 9000;
+  background-color: #ff9d9d;
+  opacity: 90%;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 16px;
+  gap: 8px;
+  justify-items: center;
+  align-items: center;
+  color: white;
+}
+
+.lds-dual-ring {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+  }
+  .lds-dual-ring:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    /* margin: 8px; */
+    border-radius: 50%;
+    border: 6px solid #fff;
+    border-color: #fff transparent #fff transparent;
+    animation: lds-dual-ring 1.2s linear infinite;
+  }
+  @keyframes lds-dual-ring {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
