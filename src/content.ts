@@ -103,6 +103,11 @@ async function filterImgTags (imgs: HTMLImageElement[]): Promise<any> {
       .filter(img => filteredOutRes.find(res => res.imgURI === img.src) !== undefined)
       .map(fi => fi.currentSrc)
 
+    console.log('PURITY VISION is hiding these images: ')
+    for (const url of filteredImgURLs) {
+      console.log(url)
+    }
+
     const msg: ContentMessage = {
       imgURLs: filteredImgURLs
     }

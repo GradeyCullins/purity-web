@@ -1,5 +1,6 @@
 const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
+const webpack = require('webpack')
 
 module.exports = {
   entry: {
@@ -55,6 +56,10 @@ module.exports = {
     // CSS copier
     new CopyPlugin({
       patterns: [{ from: '.', to: '../css', context: 'src/css' }]
+    }),
+    new webpack.DefinePlugin({
+      MODE: JSON.stringify(process.env.MODE),
+      API_URL: JSON.stringify(process.env.API_URL)
     })
   ]
 }

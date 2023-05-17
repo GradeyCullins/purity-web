@@ -16,6 +16,21 @@ export interface DomainsStorage {
   domains: string[]
 }
 
+const AddLicense = (): JSX.Element => {
+  return (
+    <div>
+      <label htmlFor='license-input'>License</label>
+      <input type='text' name='license' id='license-input' />
+    </div>
+  )
+}
+
+interface WrapperProps {
+  children: ReactNode
+}
+
+const Wrapper = ({ children }: WrapperProps): JSX.Element => <div className='p-4 w-[42rem] text-[14px]'>{children}</div>
+
 const Popup = (): JSX.Element => {
   const [domains, setDomains] = useState<string[]>([])
   // const [newDomain, setNewDomain] = useState('')
@@ -139,7 +154,7 @@ const Popup = (): JSX.Element => {
   }
 
   return (
-    <div className='p-4 w-[42rem] text-[14px]'>
+    <Wrapper>
       <Toaster />
       <div className='flex items-center justify-between mb-4'>
         <div className='flex gap-2'>
@@ -295,7 +310,7 @@ const Popup = (): JSX.Element => {
 
           </button>}
       </section>
-    </div>
+    </Wrapper>
   )
 }
 

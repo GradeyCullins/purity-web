@@ -6,6 +6,7 @@ export interface ContentMessage {
 }
 
 export interface AppStorage {
+  licenseID: string
   filterEnabled: boolean
   needsRefresh: boolean
   domains: string[]
