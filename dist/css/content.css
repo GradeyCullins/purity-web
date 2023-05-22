@@ -1,5 +1,7 @@
 .blurred-img {
-    filter: blur(30px);
+    /* filter: blur(10px); */
+    /* visibility: hidden; */
+    display: none;
 }
 
 .blurred-img-wrapper {

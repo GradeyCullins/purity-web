@@ -1,10 +1,11 @@
-import { faPlus, faEye, faEyeSlash, faTrashCan, faSpinner, faArrowsRotate } from '@fortawesome/free-solid-svg-icons'
+import { faArrowsRotate, faEye, faEyeSlash, faSpinner, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { AppStorage } from '@src/worker'
 import Button from '@src/components/Button'
+import AddLicense from '@src/components/EditLicense'
 import { getCurrentTab } from '@src/utils'
+import { AppStorage } from '@src/worker'
 import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
-import { toast, Toaster } from 'react-hot-toast'
+import { Toaster, toast } from 'react-hot-toast'
 import browser from 'webextension-polyfill'
 // import difference from 'lodash/difference'
 // import { Tooltip } from 'react-tooltip'
@@ -16,15 +17,6 @@ export interface DomainsStorage {
   domains: string[]
 }
 
-const AddLicense = (): JSX.Element => {
-  return (
-    <div>
-      <label htmlFor='license-input'>License</label>
-      <input type='text' name='license' id='license-input' />
-    </div>
-  )
-}
-
 interface WrapperProps {
   children: ReactNode
 }
@@ -33,21 +25,17 @@ const Wrapper = ({ children }: WrapperProps): JSX.Element => <div className='p-4
 
 const Popup = (): JSX.Element => {
   const [domains, setDomains] = useState<string[]>([])
-  // const [newDomain, setNewDomain] = useState('')
   const [imgs, setImgs] = useState<string[]>([])
-  const [filterEnabled, setFilterEnabled] = useState(false)
-  const [loadingDomains, setLoadingDomains] = useState(true)
+  const [filterEnabled, setFilterEnabled] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [siteEnabled, setSiteEnabled] = useState(false)
   const [refreshVisible, setRefreshVisible] = useState(false)
-  // const [isSaveEnabled, setIsSaveEnabled] = useState(false)
-  // let snapshotDomains: string[] = []
+  const [license, setLicense] = useState<string>('')
+  const [licenseSaved, setLicenseSaved] = useState(false)
+  const [editingLicense, setEditingLicense] = useState(false)
 
-  // Load page's filtered images.
-  // Load filtered domains.
   useEffect(() => {
-    let tabID = -1
-
-    const fetchStorage = async (): Promise<void> => {
+    const fetchAppStorage = async (): Promise<AppStorage | null> => {
       let storage: AppStorage
 
       try {
@@ -56,100 +44,77 @@ const Popup = (): JSX.Element => {
       } catch (err) {
         const msg = `failed to load local storage: ${(err as Error).message}`
         console.error(msg)
-        throw new Error(msg)
+        return null
       } finally {
-        setLoadingDomains(false)
+        setLoading(false)
       }
+      return storage
+    }
 
+    const updateAppStorage = async (storage: AppStorage): Promise<void> => {
       setDomains(storage.domains)
       setFilterEnabled(storage.filterEnabled)
-      // setSnapshotDomains(domainsRes.domains)
 
-      const tab = await getCurrentTab()
-      if (tab?.id === undefined || tab?.url === undefined) {
-        throw new Error('Current tab was undefined')
+      if (storage.licenseID !== undefined && storage.licenseID !== '') {
+        setLicenseSaved(true)
       }
-      tabID = tab.id
+      setLicense(storage.licenseID)
 
-      const currentHost = new URL(tab.url).host
-      if (storage.domains.includes(currentHost)) {
-        setSiteEnabled(true)
-      }
+      try {
+        const tab = await getCurrentTab()
+        if (tab?.id === undefined || tab?.url === undefined) {
+          throw new Error('Current tab was undefined')
+        }
+        const tabID = tab.id
 
-      if (storage.tabs[tabID] !== undefined && storage.filterEnabled && storage.domains.includes(currentHost)) {
-        setImgs(storage.tabs[tabID])
+        const currentHost = new URL(tab.url).host
+        if (storage.domains.includes(currentHost)) {
+          setSiteEnabled(true)
+        }
+
+        if (storage.tabs[tabID] !== undefined && storage.filterEnabled && storage.domains.includes(currentHost)) {
+          setImgs(storage.tabs[tabID])
+        }
+      } catch (err) {
+
       }
     }
 
-    fetchStorage()
-      .catch(err => console.log(err))
+    const init = async (): Promise<void> => {
+      const storage = await fetchAppStorage()
+      if (storage !== null) {
+        console.log('here')
+        void updateAppStorage(storage)
+      }
+    }
+
+    void init()
   }, [])
 
-  // useEffect(() => findDifference(), [domains])
-
-  // TODO: Load filter settings.
-  // useEffect(...)
-
-  // const findDifference = (): void => {
-  //   console.log(domains, snapshotDomains)
-  //   const diff = difference(domains, snapshotDomains)
-  //   console.log(diff)
-  //   if (diff.length > 0) {
-  //     setIsSaveEnabled(true)
-  //   } else {
-  //     setIsSaveEnabled(false)
-  //   }
-  // }
-
-  // const handleSave = (): void => {
-  //   browser.storage.local.set({ domains })
-  //     .then(() => {
-  //       // setSnapshotDomains(domains)
-  //       // snapshotDomains = [...domains]
-  //       toast.success('Filtered sites were updated')
-  //     })
-  //     .catch(err => console.error('failed to update domains in local storage: ', err))
-  // }
-
-  // const handleAddDomain = (): void => {
-  //   if (newDomain === '') {
-  //     toast.error('Input cannot be empty')
-  //     return
-  //   }
-  //   setDomains([...domains].concat([newDomain]))
-  //   toast.success(`Added ${newDomain}`)
-  //   setNewDomain('')
-  // }
-
-  const handleAddCurrentSite = (): void => {
-    getCurrentTab().then(tab => {
-      if (tab.url === undefined) {
-        toast.error('Active tab not found')
-        return
-      }
-
-      const host = new URL(tab.url).host
-      if (domains.includes(host)) {
-        toast.error('This site is already added')
-        return
-      }
-
-      const updatedDomains = domains.concat([host])
-      setDomains(updatedDomains)
-      setSiteEnabled(true)
-      setFilterEnabled(true)
-      setRefreshVisible(true)
-      browser.storage.local.set({ domains: updatedDomains })
-        .then(() => toast.success('Site was added'))
-        .catch(err => console.error('failed to update domains in local storage: ', err))
-    }).catch(err => console.error(err))
+  if (loading) {
+    return (
+      <Wrapper>
+        <FontAwesomeIcon icon={faSpinner} className='animate-spin text-2xl' />
+      </Wrapper>
+    )
   }
 
-  if (loadingDomains) {
+  if (!licenseSaved || editingLicense) {
     return (
-      <div className='p-4 w-[42rem] text-[14px] text-center'>
-        <FontAwesomeIcon icon={faSpinner} className='animate-spin text-2xl' />
-      </div>
+      <Wrapper>
+        <AddLicense
+          license={license}
+          setLicense={setLicense}
+          onSaveLicense={license => {
+            browser.storage.local.set({ licenseID: license })
+              .then(() => {
+                setLicenseSaved(true)
+                setEditingLicense(false)
+              })
+              .catch(err => { console.error(err) })
+          }}
+        />
+      </Wrapper>
     )
   }
 
@@ -157,49 +122,10 @@ const Popup = (): JSX.Element => {
     <Wrapper>
       <Toaster />
       <div className='flex items-center justify-between mb-4'>
-        <div className='flex gap-2'>
-          <Button
-            className='mb-2 uppercase'
-            onClick={handleAddCurrentSite}
-            disabled={siteEnabled}
-          >
-            <div className='flex items-center gap-2'>
-              <FontAwesomeIcon icon={faPlus} />
-              Add this site
-            </div>
-          </Button>
-          {/* <Button
-            className='uppercase border'
-            onClick={() => {
-              const nextFilterState = !filterEnabled
-              setFilterEnabled(nextFilterState)
-              if (!nextFilterState) {
-                setImgs([])
-              }
-              setRefreshVisible(true)
-              browser.storage.local.set({ filterEnabled: nextFilterState })
-                .catch(() => {})
-              toast.success(`Toggle ${filterEnabled ? 'enabled' : 'disabled'}`)
-            }}
-            disabled={!siteEnabled}
-          >
-            Toggle Filter
-          </Button> */}
-        </div>
-        <button
-          className={`
-          flex text-lg gap-1 items-center cursor-pointer
-          ${filterEnabled
-            ? 'hover:bg-blue-100 border-blue-400 text-blue-500'
-            : 'hover:bg-red-100 border-red-400 text-red-500'
-          }
-          transition-colors px-4 py-2 border
-          `}
+        <Button
+          className='flex text-lg gap-1 items-center cursor-pointer'
           onClick={() => {
-            if (!siteEnabled) {
-              toast('Please add this site first')
-              return
-            }
+            // TODO: can all this go into a function?
             const nextFilterState = !filterEnabled
             setFilterEnabled(nextFilterState)
             if (!nextFilterState) {
@@ -208,7 +134,12 @@ const Popup = (): JSX.Element => {
             setRefreshVisible(true)
             browser.storage.local.set({ filterEnabled: nextFilterState })
               .catch(() => {})
-            toast.success(`Toggle ${filterEnabled ? 'enabled' : 'disabled'}`)
+
+            if (nextFilterState) {
+              toast.success('filter enabled')
+            } else {
+              toast.error('filter disabled')
+            }
           }}
         >
           <span className='font-bold select-none'>
@@ -219,32 +150,9 @@ const Popup = (): JSX.Element => {
             icon={filterEnabled ? faEyeSlash : faEye}
             className={filterEnabled ? 'text-blue-500' : 'text-red-500'}
           />
-        </button>
+        </Button>
+        <Button onClick={() => { setEditingLicense(true) }}>Edit License</Button>
       </div>
-
-      {/* Add a site */}
-      {/* <section className='mb-4'>
-        <Title>Add a site</Title>
-        <div className='flex items-center gap-2 mb-2'>
-          <input
-            type='text'
-            value={newDomain}
-            onChange={e => setNewDomain(e.target.value)}
-            placeholder='e.g. https://facebook.com'
-            className='w-3/4 border p-2 focus:border-blue-800 outline-none'
-          />
-          <Button
-            className='border border-blue-500 text-blue-500 hover:bg-blue-100 transition-colors uppercase'
-            onClick={handleAddDomain}
-          >
-            <div className='flex items-center gap-2'>
-              <FontAwesomeIcon icon={faPlus} />
-              add
-            </div>
-          </Button>
-
-        </div>
-      </section> */}
 
       {/* My filtered sites. */}
       <section className='mb-4'>

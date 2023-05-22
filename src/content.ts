@@ -1,6 +1,5 @@
-import { filterImages, health } from './api'
 import browser from 'webextension-polyfill'
-import { DomainsStorage } from './popup/Popup'
+import { filterImages, health } from './api'
 import { AppStorage, ContentMessage } from './worker'
 
 interface ImgFilterRes {
@@ -37,46 +36,74 @@ const removeLoadingTab = (): void => {
   body?.removeChild(loadingTab)
 }
 
-export function main (): void {
-  filterPage()
-    .catch(err => console.error(err))
+const isPageEnabled = (
+  { location, blacklist, whitelist }: { location: string, blacklist: string[], whitelist: string[] }
+): boolean => {
+  // TODO: add or switch to whitelist
+  return !blacklist.includes(location)
 }
 
-async function filterPage (): Promise<any> {
+const testDomains = ['boards.4chan.org', 'boards.4channel.org', 'test.gradeycullins.com']
+
+export async function main (): Promise<void> {
   const storage = await browser.storage.local.get() as AppStorage
 
-  // Don't do image filtering if the current tab URL is not in the domain whitelist.
-  if (!storage.domains.includes(window.location.hostname)) {
-    console.log('webpage is not in user settings, skipping filter')
-    return
-  }
-
   if (!storage.filterEnabled) {
-    console.log('filter is disabled in popup')
     return
   }
 
-  displayLoadingTab()
+  const opts = {
+    location: window.location.hostname,
+    blacklist: storage.blacklist,
+    whitelist: []
+  }
 
-  console.log('running Purity filter')
+  if (!isPageEnabled(opts)) {
+    return
+  }
+
+  // Test code. REMOVE
+  if (!testDomains.includes(window.location.hostname)) {
+    return
+  }
 
   // Don't do image filtering if the backend is not reachable.
   const res = await health()
-  if (res.status !== 200) {
-    console.log(`failed to reach backend with response code: ${res.status}`)
+  if (res === undefined) {
+    console.log('something went wrong')
     return
   }
 
-  // TODO: get imgs from other sources like background-image
-  // const imgList = [...document.getElementsByTagName('img')]
-  const imgList = [].slice.call(document.getElementsByTagName('img'))
+  if (res.status !== 200) {
+    console.log(`Health endpoint failed with non-200 response: ${res.status}`)
+    return
+  }
 
-  // Async call to filter images as <img> tags.
-  filterImgTags(imgList)
+  filterPage(storage.licenseID)
     .catch(err => console.error(err))
 }
 
-async function filterImgTags (imgs: HTMLImageElement[]): Promise<any> {
+// TODO: get imgs from other sources like background-image
+function getPageImages (): HTMLImageElement[] {
+  return [].slice.call(document.getElementsByTagName('img'))
+}
+
+async function filterPage (licenseID: string): Promise<any> {
+  console.log('running Purity filter')
+
+  const pageImages = getPageImages()
+
+  try {
+    displayLoadingTab()
+    await filterImgTags(pageImages, licenseID)
+  } catch (err) {
+    console.error(err)
+  } finally {
+    removeLoadingTab()
+  }
+}
+
+async function filterImgTags (imgs: HTMLImageElement[], license: string): Promise<any> {
   if (imgs.length === 0) {
     return
   }
@@ -85,47 +112,55 @@ async function filterImgTags (imgs: HTMLImageElement[]): Promise<any> {
   imgs.forEach(i => i.classList.add('blurred-img'))
 
   const imgURIList = imgs.map(img => img.src)
-  // const imgURIList = []
-  // for (const img of imgList) {
-  //   imgURIList.push(img.src)
-  // }
+
+  const res = await filterImages(imgURIList, license)
+  if (res === undefined) {
+    console.error('failed to fetch')
+    return
+  }
+  if (res.status !== 200) {
+    console.error(`Failed to get response from API with status ${res.status}`)
+    return
+  }
+  const filterRes = await res.json() as ImgFilterRes[]
+
+  await sendFilterMsg(filterRes, imgs)
+
+  showCleanImgs(filterRes, imgs)
+}
+
+const sendFilterMsg = async (res: ImgFilterRes[], imgs: HTMLImageElement[]): Promise<void> => {
+  const filteredOutRes = res.filter(r => !r.pass)
+  console.log(filteredOutRes)
+  const filteredImgURLs = imgs
+    .filter(img => filteredOutRes.find(res => res.imgURI === img.src) !== undefined)
+    .map(fi => fi.currentSrc)
+
+  console.log('PURITY VISION is hiding these images: ')
+  for (const url of filteredImgURLs) {
+    console.log(url)
+  }
+
+  const msg: ContentMessage = {
+    imgURLs: filteredImgURLs
+  }
 
   try {
-    const res = await filterImages(imgURIList)
-    if (res.status !== 200) {
-      console.error(`Failed to get response from API with status ${res.status}`)
-      return
-    }
-    const filterRes = await res.json() as ImgFilterRes[]
-
-    const filteredOutRes = filterRes.filter(res => !res.pass)
-    const filteredImgURLs = imgs
-      .filter(img => filteredOutRes.find(res => res.imgURI === img.src) !== undefined)
-      .map(fi => fi.currentSrc)
-
-    console.log('PURITY VISION is hiding these images: ')
-    for (const url of filteredImgURLs) {
-      console.log(url)
-    }
-
-    const msg: ContentMessage = {
-      imgURLs: filteredImgURLs
-    }
-
     await browser.runtime.sendMessage(msg)
-
-    const passed = filterRes.filter(res => res.pass)
-    imgs
-      .filter(img => passed.find(res => res.imgURI === img.src) !== undefined)
-      .forEach(i => { i.classList.remove('blurred-img') })
   } catch (err) {
-    console.log(err)
-  } finally {
-    removeLoadingTab()
+    console.error('failed to send filtered image message: ', err)
   }
 }
 
-// Warning: function has side-effects!
+const showCleanImgs = (res: ImgFilterRes[], imgs: HTMLImageElement[]): void => {
+  const passed = res.filter(r => r.pass)
+  imgs
+    .filter(img => passed.find(res => res.imgURI === img.src) !== undefined)
+    .forEach(i => { i.classList.remove('blurred-img') })
+}
+
+void main()
+
 // Take an img element and add/modify markup to mark the image as explicit.
 // export function updateFilteredImgMarkup (img: HTMLImageElement) {
 //   if (!img) {
@@ -201,5 +236,3 @@ async function filterImgTags (imgs: HTMLImageElement[]): Promise<any> {
 //     console.log(err)
 //   }
 // }
-
-main()

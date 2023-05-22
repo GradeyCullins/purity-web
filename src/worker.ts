@@ -10,6 +10,7 @@ export interface AppStorage {
   filterEnabled: boolean
   needsRefresh: boolean
   domains: string[]
+  blacklist: string[]
   tabs: {
     [tabID: number]: string[]
   }
@@ -19,42 +20,43 @@ browser.storage.local.set({
   filterEnabled: true,
   needsRefresh: false,
   domains: [],
+  blacklist: [],
   tabs: {}
 })
   .catch(err => console.error(err))
 
-browser.tabs.onUpdated.addListener((tabID, changeInfo, tab) => {
-  browser.storage.local.get()
-    .then(rawStorage => {
-      updateBadge(tabID, rawStorage as AppStorage)
-    })
-    .catch(err => console.error('failed to fetch storage: ', err))
-})
+// browser.tabs.onUpdated.addListener((tabID, changeInfo, tab) => {
+//   browser.storage.local.get()
+//     .then(rawStorage => {
+//       updateBadge(tabID, rawStorage as AppStorage)
+//     })
+//     .catch(err => console.error('failed to fetch storage: ', err))
+// })
 
-const updateBadge = (tabID: number, storage: AppStorage): void => {
-  const tabState = storage.tabs[tabID]
-  if (tabState !== undefined && storage.filterEnabled) {
-    browser.action.setBadgeText({
-      text: tabState.length.toString()
-    }).catch(err => console.error(err))
-    browser.action.setIcon({ path: '../logo.png' })
-      .catch(err => console.error(err))
-  } else {
-    browser.action.setBadgeText({ text: '' })
-      .catch(err => console.error(err))
-    browser.action.setIcon({ path: '../logo-red.png' })
-      .catch(err => console.error(err))
-  }
-}
+// const updateBadge = (tabID: number, storage: AppStorage): void => {
+//   const tabState = storage.tabs[tabID]
+//   if (tabState !== undefined && storage.filterEnabled) {
+//     browser.action.setBadgeText({
+//       text: tabState.length.toString()
+//     }).catch(err => console.error(err))
+//     browser.action.setIcon({ path: '../logo.png' })
+//       .catch(err => console.error(err))
+//   } else {
+//     browser.action.setBadgeText({ text: '' })
+//       .catch(err => console.error(err))
+//     browser.action.setIcon({ path: '../logo-red.png' })
+//       .catch(err => console.error(err))
+//   }
+// }
 
-browser.tabs.onActivated.addListener(info => {
-  browser.storage.local.get()
-    .then(rawStorage => {
-      const storage = rawStorage as AppStorage
-      updateBadge(info.tabId, storage)
-    })
-    .catch(err => { console.error('failed to get storage: ', err) })
-})
+// browser.tabs.onActivated.addListener(info => {
+//   browser.storage.local.get()
+//     .then(rawStorage => {
+//       const storage = rawStorage as AppStorage
+//       updateBadge(info.tabId, storage)
+//     })
+//     .catch(err => { console.error('failed to get storage: ', err) })
+// })
 
 browser.runtime.onMessage.addListener(async (req: ContentMessage) => {
   const tab = await getCurrentTab()
@@ -65,7 +67,7 @@ browser.runtime.onMessage.addListener(async (req: ContentMessage) => {
   const storage = (await browser.storage.local.get()) as AppStorage
   storage.tabs[tab.id] = req.imgURLs
 
-  updateBadge(tab.id, storage)
+  // updateBadge(tab.id, storage)
 
   console.log('setting storage: ', storage)
   browser.storage.local.set(storage)
